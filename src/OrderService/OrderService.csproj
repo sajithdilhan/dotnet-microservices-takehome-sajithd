@@ -11,11 +11,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Api\Controllers\" />
-    <Folder Include="Api\" />
-    <Folder Include="Application\" />
-    <Folder Include="Domain\Entities\" />
-    <Folder Include="Infrastructure\" />
+    <Folder Include="Infrastructure\Persistent\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shared.Contracts\Shared.Contracts.csproj" />
   </ItemGroup>
 
 </Project>
