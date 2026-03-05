@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using OrderService.Application.Dto;
 using OrderService.Application.Interfaces;
 
 namespace OrderService.Api.Controllers;
@@ -19,5 +20,19 @@ public class OrdersController(IOrderService orderService, ILogger<OrdersControll
         }
 
         return Ok(result.Value);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateOrders(OrderRequest request) 
+    {
+        logger.LogInformation("Creating order for customer:{CustomerEmail}", request.CustomerEmail);
+        var result = await orderService.CreateOrder(request);
+
+        if (!result.IsSuccess)
+        {
+            return Problem(detail: result.Error!.Message, statusCode: result.Error.Code);
+        }
+
+        return CreatedAtAction(nameof(GetOrders), new { id = result.Value }, result.Value);
     }
 }

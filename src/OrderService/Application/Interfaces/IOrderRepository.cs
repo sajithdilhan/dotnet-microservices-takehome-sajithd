@@ -4,5 +4,6 @@ namespace OrderService.Application.Interfaces;
 
 public interface IOrderRepository
 {
-    Task<List<Order>> GetAllOrders();
+    public Task<IEnumerable<Order>> GetAllOrders();
+    public Task<int> CreateOrder(Order order);
 }

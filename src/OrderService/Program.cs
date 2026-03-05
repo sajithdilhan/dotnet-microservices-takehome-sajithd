@@ -1,5 +1,9 @@
+using Microsoft.EntityFrameworkCore;
+using OrderService.Api.Middleware;
 using OrderService.Application.Interfaces;
+using OrderService.Infrastructure.Persistent;
 using OrderService.Infrastructure.Repositories;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +14,9 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderService, OrderService.Application.Services.OrderService>();
+var databaseName = builder.Configuration.GetConnectionString("OrderDatabase") ?? "OrderDatabase";
+builder.Services.AddDbContext<OrdersDbContext>(options =>
+    options.UseInMemoryDatabase(databaseName));
 
 var app = builder.Build();
 
@@ -17,8 +24,16 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference(options =>
+    {
+        options.WithTitle("Orders API")
+               .WithTheme(ScalarTheme.DeepSpace)
+               .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient)
+               .EnableDarkMode();
+    });
 }
 
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
