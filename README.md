@@ -47,7 +47,6 @@
 1. Used in-memory database instead of a persistent database for simplicity and ease of setup.
 2. Kept all services in a single repository for easier review, though in real-world scenarios, they would be in separate repositories.
 3. Limited error handling and validation to essential checks to keep the implementation straightforward.
-4. Used basic logging instead of a full-fledged logging framework for simplicity.
 
 ## Tech Stack
 .NET 9, ASP.NET Core Web API, MassTransit, RabbitMQ, Docker & Docker Compose, Serilog (structured logging), Scalar API documentation
@@ -75,7 +74,3 @@ Start all services and infrastructure using Docker Compose.
 - Payment Service: ```http://localhost:5002/scalar/```
 - Notification Service: ```http://localhost:5003/scalar/```
 
-## Resources 
-- ChatGPT 
-- Github Copilot
-- Youtube
