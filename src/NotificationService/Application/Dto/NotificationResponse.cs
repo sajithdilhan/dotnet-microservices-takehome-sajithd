@@ -11,7 +11,7 @@
             return new NotificationResponse
             {
                 NotificationId = notification.NotificationId,
-                Message = notification.Message,
+                Message = $"Payment of {notification.Message.Amount:C} for Order {notification.Message.OrderId} succeeded.",
                 CreatedAt = notification.CreatedAt
             };
         }

@@ -1,11 +1,12 @@
-﻿using NotificationService.Application.Dto;
+﻿using NotificationService.Domain.Validations;
+using Shared.Contracts.Events;
 
 namespace NotificationService.Domain.Entities;
 
 public class Notification
 {
     public int NotificationId { get; set; }
-    public string Message { get; set; } = string.Empty;
+    public PaymentSucceededEvent Message { get; set; } = default!;
     public DateTime CreatedAt { get; set; }
 
     private Notification()
@@ -13,7 +14,7 @@ public class Notification
         
     }
 
-    public Notification(string message)
+    public Notification(PaymentSucceededEvent message)
     {
         Message = message;
         CreatedAt = DateTime.UtcNow;

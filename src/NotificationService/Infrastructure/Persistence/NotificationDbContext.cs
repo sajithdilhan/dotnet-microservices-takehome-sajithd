@@ -7,8 +7,13 @@ public class NotificationDbContext(DbContextOptions<NotificationDbContext> optio
 {
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<Notification>(builder =>
+        {
+            builder.HasKey(n => n.NotificationId);
+            builder.OwnsOne(n => n.Message);
+        });
     }
+
     public DbSet<Notification> Notifications { get; set; }
 }
 

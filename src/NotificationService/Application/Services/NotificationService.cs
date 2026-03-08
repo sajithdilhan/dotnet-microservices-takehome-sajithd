@@ -13,10 +13,10 @@ public class NotificationService(INotificationRepository notificationRepository,
         logger.LogInformation("Fetching all notifications");
 
         var notifications = await notificationRepository.GetAllNotifications();
-        if (notifications is null)
+        if (!notifications.Any())
         {
             logger.LogWarning("No notifications found!");
-            return Result<IEnumerable<NotificationResponse>>.Failure(new Error((int)HttpStatusCode.BadRequest, "No notifications found!"));
+            return Result<IEnumerable<NotificationResponse>>.Failure(new Error((int)HttpStatusCode.NotFound, "No notifications found!"));
         }
 
         logger.LogInformation("Returning notifications.");
@@ -28,7 +28,8 @@ public class NotificationService(INotificationRepository notificationRepository,
     {
         await notificationRepository.SaveNotification(notification);
         logger.LogInformation("Notification saved to repository with ID: {NotificationId}", notification.NotificationId);
-        logger.LogInformation("Sending notification: {Message}", notification.Message);
+        string message = $"Payment of {notification.Message.Amount:C} for Order {notification.Message.OrderId} succeeded.";
+        logger.LogInformation("Sending notification: {Message} to {CustomerEmail}", message, notification.Message.CustomerEmail);
         await Task.CompletedTask;
     }
 }

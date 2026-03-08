@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using NotificationService.Domain.Entities;
 using NotificationService.Infrastructure.Persistence;
 using NotificationService.Infrastructure.Repositories;
+using Shared.Contracts.Events;
 
 namespace NotificationServiceTests.Repositories;
 
@@ -40,7 +41,7 @@ public class NotificationRepositoryTests
         await using var context = CreateContext(dbName);
         var repo = new NotificationRepository(context);
 
-        var notification = new Notification("msg");
+        var notification = new Notification(new PaymentSucceededEvent(1, 100m, 1, DateTime.UtcNow, "test@example.com"));
 
         // Act
         var created = await repo.SaveNotification(notification);
@@ -58,7 +59,7 @@ public class NotificationRepositoryTests
     public void CreatingNotification_WithEmptyMessage_Allows()
     {
         // Arrange & Act
-        var n = new Notification("");
-        Assert.Equal(string.Empty, n.Message);
+        var n = new Notification(new PaymentSucceededEvent(1, 100m, 1, DateTime.UtcNow, "test@example.com"));
+        Assert.Equal("test@example.com", n.Message.CustomerEmail);
     }
 }

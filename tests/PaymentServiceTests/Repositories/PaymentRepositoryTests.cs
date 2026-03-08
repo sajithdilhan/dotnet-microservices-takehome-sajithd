@@ -42,7 +42,7 @@ public class PaymentRepositoryTests
         await using var context = CreateContext(dbName);
         var repo = new PaymentRepository(context);
 
-        var payment = new Payment(25, 6);
+        var payment = new Payment(25m, 6, "test@test.com", paymentStatus: PaymentStatus.Pending);
 
         // Act
         var created = await repo.SavePaymentAsync(payment);
@@ -64,7 +64,7 @@ public class PaymentRepositoryTests
         await using var context = CreateContext(dbName);
         var repo = new PaymentRepository(context);
 
-        var payment = new Payment(40, 7);
+        var payment = new Payment(40m, 7, "test@test.com", paymentStatus: PaymentStatus.Pending);
         var created = await repo.SavePaymentAsync(payment);
 
         // Act
@@ -83,7 +83,7 @@ public class PaymentRepositoryTests
     public void CreatingPayment_WithInvalidArgs_ThrowsValidation()
     {
         // Arrange & Act & Assert
-        Assert.Throws<PaymentValidationException>(() => new Payment(0, 1));
-        Assert.Throws<PaymentValidationException>(() => new Payment(10, 0));
+        Assert.Throws<PaymentValidationException>(() => new Payment(0, 1, "test@test.com", paymentStatus: PaymentStatus.Pending));
+        Assert.Throws<PaymentValidationException>(() => new Payment(10, 0, "test@test.com", paymentStatus: PaymentStatus.Pending));
     }
 }

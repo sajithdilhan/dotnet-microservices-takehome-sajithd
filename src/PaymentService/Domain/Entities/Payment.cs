@@ -14,21 +14,26 @@ public class Payment
 
     public Guid ExternalPaymentId { get; set; }
 
+    public string CustomerEmail { get; set; } = string.Empty;
+
     private Payment()
     {
 
     }
 
-    public Payment(decimal amount, int orderId, PaymentStatus paymentStatus = PaymentStatus.Pending)
+    public Payment(decimal amount, int orderId, string customerEmail, PaymentStatus paymentStatus = PaymentStatus.Pending)
     {
         if (amount <= 0)
             throw new PaymentValidationException("Order amount must be greater than zero!");
         if (orderId <= 0)
             throw new PaymentValidationException("OrderId must be greater than zero!");
+        if (string.IsNullOrWhiteSpace(customerEmail))
+            throw new PaymentValidationException("Customer email must be provided!");
 
         Amount = amount;
         OrderId = orderId;
         PaymentStatus = paymentStatus;
         PaymentDate = DateTime.UtcNow;
+        CustomerEmail = customerEmail;
     }
 }

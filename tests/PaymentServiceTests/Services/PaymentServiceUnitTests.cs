@@ -17,7 +17,7 @@ public class PaymentServiceUnitTests
     public async Task GetAllPayments_ReturnsSuccess_WhenRepositoryHasPayments()
     {
         // Arrange
-        var payment = new Payment(10, 2) { PaymentId = 1 };
+        var payment = new Payment(10m, 2, "test@test.com", paymentStatus: PaymentStatus.Pending) { PaymentId = 1 };
         var payments = new List<Payment> { payment };
 
         var mockRepo = new Mock<IPaymentRepository>();
@@ -45,7 +45,7 @@ public class PaymentServiceUnitTests
     {
         // Arrange
         var mockRepo = new Mock<IPaymentRepository>();
-        mockRepo.Setup(r => r.GetAllPaymentsAsync()).ReturnsAsync((IEnumerable<Payment>?)null);
+        mockRepo.Setup(r => r.GetAllPaymentsAsync()).ReturnsAsync(Enumerable.Empty<Payment>());
 
         var mockPublish = new Mock<IPublishEndpoint>();
         var mockLogger = new Mock<ILogger<ServiceType>>();
@@ -58,15 +58,15 @@ public class PaymentServiceUnitTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.NotNull(result.Error);
-        Assert.Equal(400, result.Error!.Code);
-        Assert.Equal("No orders found!", result.Error.Message);
+        Assert.Equal(404, result.Error!.Code);
+        Assert.Equal("No payments found!", result.Error.Message);
     }
 
     [Fact]
     public async Task ProcessPayment_PublishesEventAndReturnsTrue_WhenPaymentSucceeds()
     {
         // Arrange
-        var payment = new Payment(30, 3) { PaymentId = 7, PaymentStatus = PaymentStatus.Pending };
+        var payment = new Payment(30m, 3, "test@test.com", paymentStatus: PaymentStatus.Pending) { PaymentId = 7 };
 
         var mockRepo = new Mock<IPaymentRepository>();
         mockRepo.Setup(r => r.SavePaymentAsync(It.IsAny<Payment>())).ReturnsAsync((Payment p) => p);
@@ -93,7 +93,7 @@ public class PaymentServiceUnitTests
     public async Task ProcessPayment_ReturnsFalse_WhenUpdateMarksFailed()
     {
         // Arrange
-        var payment = new Payment(30, 4) { PaymentId = 8, PaymentStatus = PaymentStatus.Pending };
+        var payment = new Payment(30m, 4, "test@test.com", paymentStatus: PaymentStatus.Pending) { PaymentId = 8 };
 
         var mockRepo = new Mock<IPaymentRepository>();
         mockRepo.Setup(r => r.SavePaymentAsync(It.IsAny<Payment>())).ReturnsAsync((Payment p) => p);
@@ -116,7 +116,7 @@ public class PaymentServiceUnitTests
     public async Task ProcessPayment_Throws_WhenSaveThrows()
     {
         // Arrange
-        var payment = new Payment(15, 5) { PaymentId = 9 };
+        var payment = new Payment(15m, 5, "test@test.com", paymentStatus: PaymentStatus.Pending) { PaymentId = 9 };
 
         var mockRepo = new Mock<IPaymentRepository>();
         mockRepo.Setup(r => r.SavePaymentAsync(It.IsAny<Payment>())).ThrowsAsync(new Exception("DB error"));

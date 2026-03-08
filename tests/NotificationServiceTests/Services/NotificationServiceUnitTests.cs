@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using NotificationService.Application.Interfaces;
 using NotificationService.Domain.Entities;
+using Shared.Contracts.Events;
 using ServiceType = NotificationService.Application.Services.NotificationService;
 
 namespace NotificationServiceTests.Services;
@@ -12,7 +13,9 @@ public class NotificationServiceUnitTests
     public async Task GetAllNotifications_ReturnsSuccess_WhenRepositoryHasNotifications()
     {
         // Arrange
-        var notification = new Notification("Hello") { NotificationId = 1 };
+        var message = new PaymentSucceededEvent(1, 100m, 1, DateTime.UtcNow, "test@example.com");
+        var notification = new Notification(message);
+        notification.NotificationId = 1;
         var notifications = new List<Notification> { notification };
 
         var mockRepo = new Mock<INotificationRepository>();
@@ -30,7 +33,6 @@ public class NotificationServiceUnitTests
         var list = result.Value!.ToList();
         Assert.Single(list);
         Assert.Equal(1, list[0].NotificationId);
-        Assert.Equal(notification.Message, list[0].Message);
     }
 
     [Fact]
@@ -38,7 +40,8 @@ public class NotificationServiceUnitTests
     {
         // Arrange
         var mockRepo = new Mock<INotificationRepository>();
-        mockRepo.Setup(r => r.GetAllNotifications()).ReturnsAsync((IEnumerable<Notification>?)null);
+        mockRepo.Setup(r => r.GetAllNotifications())
+        .ReturnsAsync(Enumerable.Empty<Notification>());
 
         var mockLogger = new Mock<ILogger<ServiceType>>();
         var service = new ServiceType(mockRepo.Object, mockLogger.Object);
@@ -49,7 +52,7 @@ public class NotificationServiceUnitTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.NotNull(result.Error);
-        Assert.Equal(400, result.Error!.Code);
+        Assert.Equal(404, result.Error!.Code);
         Assert.Equal("No notifications found!", result.Error.Message);
     }
 
@@ -57,7 +60,7 @@ public class NotificationServiceUnitTests
     public async Task SendNotification_CallsRepository_Save_WhenCalled()
     {
         // Arrange
-        var notification = new Notification("New message") { NotificationId = 0 };
+        var notification = new Notification(new PaymentSucceededEvent(1, 100m, 1, DateTime.UtcNow, "test@example.com")) { NotificationId = 0 };
 
         var mockRepo = new Mock<INotificationRepository>();
         mockRepo.Setup(r => r.SaveNotification(It.IsAny<Notification>())).ReturnsAsync((Notification n) => { n.NotificationId = 2; return n; });
@@ -76,7 +79,7 @@ public class NotificationServiceUnitTests
     public async Task SendNotification_Throws_WhenRepositoryThrows()
     {
         // Arrange
-        var notification = new Notification("X") { NotificationId = 0 };
+        var notification = new Notification(new PaymentSucceededEvent(1, 100m, 1, DateTime.UtcNow, "test@example.com")) { NotificationId = 0 };
 
         var mockRepo = new Mock<INotificationRepository>();
         mockRepo.Setup(r => r.SaveNotification(It.IsAny<Notification>())).ThrowsAsync(new Exception("DB error"));

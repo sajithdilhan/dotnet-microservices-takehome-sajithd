@@ -14,10 +14,10 @@ public class PaymentService(IPaymentRepository repository, IPublishEndpoint publ
     public async Task<Result<IEnumerable<PaymentResponse>>> GetAllPaymentsAsync()
     {
         var payments = await repository.GetAllPaymentsAsync();
-        if (payments is null)
+        if (!payments.Any())
         {
             logger.LogWarning("No payments found!");
-            return Result<IEnumerable<PaymentResponse>>.Failure(new Error((int)HttpStatusCode.BadRequest, "No orders found!"));
+            return Result<IEnumerable<PaymentResponse>>.Failure(new Error((int)HttpStatusCode.NotFound, "No payments found!"));
         }
 
         logger.LogInformation("Returning payments.");
@@ -43,16 +43,16 @@ public class PaymentService(IPaymentRepository repository, IPublishEndpoint publ
     private async Task PublishPaymentSuccessEvent(Payment payment)
     {
         logger.LogInformation("Publishing PaymentSucceededEvent for payment ID: {PaymentId}", payment.PaymentId);
-        await publishEndpoint.Publish(new PaymentSucceededEvent(payment.PaymentId, payment.Amount, payment.OrderId, payment.PaymentDate));
+        await publishEndpoint.Publish(new PaymentSucceededEvent(payment.PaymentId, payment.Amount, payment.OrderId, payment.PaymentDate, payment.CustomerEmail));
         logger.LogInformation("PaymentSucceededEvent published for payment ID: {PaymentId}", payment.PaymentId);
     }
 
     private async Task<Payment> CallExternalPaymentService(Payment payment)
     {
         logger.LogInformation("Calling external payment service for payment ID: {PaymentId}", payment.PaymentId);
-        Task.Delay(1000).Wait(); 
+        Task.Delay(1000).Wait();
         logger.LogInformation("External payment service call completed for payment ID: {PaymentId}", payment.PaymentId);
-        payment.PaymentStatus = PaymentStatus.Completed; 
+        payment.PaymentStatus = PaymentStatus.Completed;
         payment.ExternalPaymentId = Guid.NewGuid();
         return payment;
     }

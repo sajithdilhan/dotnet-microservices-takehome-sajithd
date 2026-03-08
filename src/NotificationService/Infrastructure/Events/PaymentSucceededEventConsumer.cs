@@ -13,8 +13,6 @@ public class PaymentSucceededEventConsumer(INotificationService notificationServ
         var message = context.Message;
         logger.LogInformation("Received PaymentSucceededEvent: {Payment}", JsonSerializer.Serialize(message));
 
-        string notificationMessage = $"Payment of {message.Amount:C} for Order {message.OrderId} succeeded on {message.PaymentDate}.";
-
-        await notificationService.SendNotificationAsync(new Notification(notificationMessage));
+        await notificationService.SendNotificationAsync(new Notification(message));
     }
 }
