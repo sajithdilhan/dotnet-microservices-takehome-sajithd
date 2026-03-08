@@ -10,6 +10,8 @@
 ### Assumptions
 1. Should the services have authentication and authorization? => Assumed no for simplicity.
 2. Should the services support pagination => Assumed no for simplicity.
+3. Should the services have retry policies for event processing? => Assumed no for simplicity.
+
 
 ### Highlevel Technical Design
 1. Use ASP.NET Core Web API projects (.NET 9).
@@ -47,6 +49,14 @@
 1. Used in-memory database instead of a persistent database for simplicity and ease of setup.
 2. Kept all services in a single repository for easier review, though in real-world scenarios, they would be in separate repositories.
 3. Limited error handling and validation to essential checks to keep the implementation straightforward.
+
+## Future improvements
+1. Implement authentication and authorization for secure access to APIs.
+2. Add pagination support for GET endpoints.
+3. Use a persistent database like SQL Server or PostgreSQL instead of in-memory databases.
+4. Implement retry policies and error handling for event processing.
+5. Add more comprehensive logging and monitoring.
+
 
 ## Tech Stack
 .NET 9, ASP.NET Core Web API, MassTransit, RabbitMQ, Docker & Docker Compose, Serilog (structured logging), Scalar API documentation
