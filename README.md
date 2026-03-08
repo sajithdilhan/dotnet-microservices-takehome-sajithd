@@ -47,20 +47,30 @@
 1. Used in-memory database instead of a persistent database for simplicity and ease of setup.
 2. Kept all services in a single repository for easier review, though in real-world scenarios, they would be in separate repositories.
 3. Limited error handling and validation to essential checks to keep the implementation straightforward.
-4. Used basic logging instead of a full-fledged logging framework for simplicity.
-  
+
+## Tech Stack
+.NET 9, ASP.NET Core Web API, MassTransit, RabbitMQ, Docker & Docker Compose, Serilog (structured logging), Scalar API documentation
+
 ## Setup Instructions
 
 ### Prerequisites
-- **.NET 8 SDK** 
+- **.NET 9 SDK** 
 - **Docker Desktop**
 - **Git**
 
 ### Steps to Run the Application
 
------ To be filled
+#### Clone the Repository
+- ```git clone https://github.com/sajithdilhan/dotnet-microservices-takehome-sajithd.git```
+- ```cd dotnet-microservices-takehome-sajithd```
 
-## Resources 
-- ChatGPT 
-- Github Copilot
-- Youtube
+#### Run the System with Docker
+Start all services and infrastructure using Docker Compose.
+
+```docker-compose up --build -d```
+
+#### Open API endpoints
+- Order Service: ```http://localhost:5001/scalar/```
+- Payment Service: ```http://localhost:5002/scalar/```
+- Notification Service: ```http://localhost:5003/scalar/```
+
