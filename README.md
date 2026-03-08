@@ -10,7 +10,6 @@
 ### Assumptions
 1. Should the services have authentication and authorization? => Assumed no for simplicity.
 2. Should the services support pagination => Assumed no for simplicity.
-3. Should the services have retry policies for event processing? => Assumed no for simplicity.
 
 
 ### Highlevel Technical Design
@@ -36,6 +35,7 @@
     - Simulate a payment process.
     - Store payment data in an in-memory database.
     - Publish `PaymentSucceededEvent` event to RabbitMQ on payment creation.
+    - Idempotency checks to avoid duplicate payments.
 3. Notification Service
     - Expose REST endpoint to get notifications.
     - Simulate sending a notification.
