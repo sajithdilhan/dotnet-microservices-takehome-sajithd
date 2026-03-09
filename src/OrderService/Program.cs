@@ -17,6 +17,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderService, OrderService.Application.Services.OrderService>();
+builder.Services.AddScoped<IIdempotencyRepository, IdempotencyRepository>();
 var databaseName = builder.Configuration.GetConnectionString("OrderDatabase") ?? "OrderDatabase";
 builder.Services.AddDbContext<OrdersDbContext>(options =>
     options.UseInMemoryDatabase(databaseName));

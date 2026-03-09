@@ -22,6 +22,8 @@
 8. Add Logging to log important events by each services.
 8. Use Docker for containarisation with docker-compose.
 9. Add OpenApi + scalar support for APIs.
+10. Handle Idempotency.
+11. Handle basic message re-try.
 
 ### Highlevel Functional Design
 1. Order Service
@@ -54,7 +56,7 @@
 1. Implement authentication and authorization for secure access to APIs.
 2. Add pagination support for GET endpoints.
 3. Use a persistent database like SQL Server or PostgreSQL instead of in-memory databases.
-4. Implement retry policies and error handling for event processing.
+4. Implement better retry policies and error handling for resilience.
 5. Add more comprehensive logging and monitoring.
 
 

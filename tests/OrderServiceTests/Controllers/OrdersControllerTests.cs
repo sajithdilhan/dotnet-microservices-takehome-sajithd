@@ -60,13 +60,13 @@ public class OrdersControllerTests
         // Arrange
         var request = new OrderRequest { CustomerEmail = "test@test.com", Amount = 20 };
         var mockService = new Mock<IOrderService>();
-        mockService.Setup(s => s.CreateOrderAsync(request)).ReturnsAsync(Result<int>.Success(123));
+        mockService.Setup(s => s.CreateOrderAsync(request, "key-1")).ReturnsAsync(Result<int>.Success(123));
 
         var mockLogger = new Mock<ILogger<OrdersController>>();
         var controller = new OrdersController(mockService.Object, mockLogger.Object);
 
         // Act
-        var result = await controller.CreateOrders(request);
+        var result = await controller.CreateOrders("key-1", request);
 
         // Assert
         var created = Assert.IsType<CreatedAtActionResult>(result);
@@ -80,13 +80,13 @@ public class OrdersControllerTests
         var request = new OrderRequest { CustomerEmail = "test@test.com", Amount = 20 };
         var error = new Error(400, "Bad request");
         var mockService = new Mock<IOrderService>();
-        mockService.Setup(s => s.CreateOrderAsync(request)).ReturnsAsync(Result<int>.Failure(error));
+        mockService.Setup(s => s.CreateOrderAsync(request, "key-2")).ReturnsAsync(Result<int>.Failure(error));
 
         var mockLogger = new Mock<ILogger<OrdersController>>();
         var controller = new OrdersController(mockService.Object, mockLogger.Object);
 
         // Act
-        var result = await controller.CreateOrders(request);
+        var result = await controller.CreateOrders("key-2", request);
 
         // Assert
         var obj = Assert.IsType<ObjectResult>(result);
@@ -101,12 +101,12 @@ public class OrdersControllerTests
         // Arrange
         var request = new OrderRequest { CustomerEmail = "test@test.com", Amount = 20 };
         var mockService = new Mock<IOrderService>();
-        mockService.Setup(s => s.CreateOrderAsync(request)).ThrowsAsync(new Exception("service error"));
+        mockService.Setup(s => s.CreateOrderAsync(request, "key-3")).ThrowsAsync(new Exception("service error"));
 
         var mockLogger = new Mock<ILogger<OrdersController>>();
         var controller = new OrdersController(mockService.Object, mockLogger.Object);
 
         // Act & Assert
-        await Assert.ThrowsAsync<Exception>(() => controller.CreateOrders(request));
+        await Assert.ThrowsAsync<Exception>(() => controller.CreateOrders("key-3", request));
     }
 }

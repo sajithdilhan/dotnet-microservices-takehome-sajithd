@@ -4,6 +4,7 @@ using Moq;
 using OrderService.Application.Dto;
 using OrderService.Application.Interfaces;
 using OrderService.Domain.Entities;
+using OrderService.Infrastructure.Idempotency;
 using Shared.Contracts.Events;
 using ServiceType = OrderService.Application.Services.OrderService;
 
@@ -21,10 +22,11 @@ public class OrderServiceUnitTests
         var mockRepo = new Mock<IOrderRepository>();
         mockRepo.Setup(r => r.GetAllOrdersAsync()).ReturnsAsync(orders);
 
+        var mockIdempotency = new Mock<IIdempotencyRepository>();
         var mockPublish = new Mock<IPublishEndpoint>();
         var mockLogger = new Mock<ILogger<ServiceType>>();
 
-        var service = new ServiceType(mockRepo.Object, mockPublish.Object, mockLogger.Object);
+        var service = new ServiceType(mockRepo.Object, mockIdempotency.Object, mockPublish.Object, mockLogger.Object);
 
         // Act
         var result = await service.GetAllOrdersAsync();
@@ -46,10 +48,11 @@ public class OrderServiceUnitTests
         var mockRepo = new Mock<IOrderRepository>();
         mockRepo.Setup(r => r.GetAllOrdersAsync()).ReturnsAsync(Enumerable.Empty<Order>());
 
+        var mockIdempotency = new Mock<IIdempotencyRepository>();
         var mockPublish = new Mock<IPublishEndpoint>();
         var mockLogger = new Mock<ILogger<ServiceType>>();
 
-        var service = new ServiceType(mockRepo.Object, mockPublish.Object, mockLogger.Object);
+        var service = new ServiceType(mockRepo.Object, mockIdempotency.Object, mockPublish.Object, mockLogger.Object);
 
         // Act
         var result = await service.GetAllOrdersAsync();
@@ -71,13 +74,16 @@ public class OrderServiceUnitTests
         var mockRepo = new Mock<IOrderRepository>();
         mockRepo.Setup(r => r.CreateOrderAsync(It.IsAny<Order>())).ReturnsAsync(returnedOrder);
 
+        var mockIdempotency = new Mock<IIdempotencyRepository>();
+        mockIdempotency.Setup(r => r.GetIdempotencyKeyAsync(It.IsAny<string>())).ReturnsAsync((IdempotencyKey?)null);
+
         var mockPublish = new Mock<IPublishEndpoint>();
         var mockLogger = new Mock<ILogger<ServiceType>>();
 
-        var service = new ServiceType(mockRepo.Object, mockPublish.Object, mockLogger.Object);
+        var service = new ServiceType(mockRepo.Object, mockIdempotency.Object, mockPublish.Object, mockLogger.Object);
 
         // Act
-        var result = await service.CreateOrderAsync(request);
+        var result = await service.CreateOrderAsync(request, "key-1");
 
         // Assert
         Assert.False(result.IsSuccess);
@@ -96,19 +102,23 @@ public class OrderServiceUnitTests
         var mockRepo = new Mock<IOrderRepository>();
         mockRepo.Setup(r => r.CreateOrderAsync(It.IsAny<Order>())).ReturnsAsync(createdOrder);
 
+        var mockIdempotency = new Mock<IIdempotencyRepository>();
+        mockIdempotency.Setup(r => r.GetIdempotencyKeyAsync(It.IsAny<string>())).ReturnsAsync((IdempotencyKey?)null);
+
         var mockPublish = new Mock<IPublishEndpoint>();
         mockPublish.Setup(p => p.Publish(It.IsAny<OrderCreatedEvent>(), default)).Returns(Task.CompletedTask);
 
         var mockLogger = new Mock<ILogger<ServiceType>>();
 
-        var service = new ServiceType(mockRepo.Object, mockPublish.Object, mockLogger.Object);
+        var service = new ServiceType(mockRepo.Object, mockIdempotency.Object, mockPublish.Object, mockLogger.Object);
 
         // Act
-        var result = await service.CreateOrderAsync(request);
+        var result = await service.CreateOrderAsync(request, "key-2");
 
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(5, result.Value);
+        mockIdempotency.Verify(r => r.SaveAsync(It.Is<IdempotencyKey>(k => k.Key == "key-2" && k.Response == "5")), Times.Once);
         mockPublish.Verify(p => p.Publish(It.Is<OrderCreatedEvent>(e => e.OrderId == 5 && e.Amount == request.Amount && e.CustomerEmail == request.CustomerEmail), default), Times.Once);
     }
 
@@ -121,13 +131,16 @@ public class OrderServiceUnitTests
         var mockRepo = new Mock<IOrderRepository>();
         mockRepo.Setup(r => r.CreateOrderAsync(It.IsAny<Order>())).ThrowsAsync(new Exception("DB error"));
 
+        var mockIdempotency = new Mock<IIdempotencyRepository>();
+        mockIdempotency.Setup(r => r.GetIdempotencyKeyAsync(It.IsAny<string>())).ReturnsAsync((IdempotencyKey?)null);
+
         var mockPublish = new Mock<IPublishEndpoint>();
         var mockLogger = new Mock<ILogger<ServiceType>>();
 
-        var service = new ServiceType(mockRepo.Object, mockPublish.Object, mockLogger.Object);
+        var service = new ServiceType(mockRepo.Object, mockIdempotency.Object, mockPublish.Object, mockLogger.Object);
 
         // Act & Assert
-        await Assert.ThrowsAsync<Exception>(() => service.CreateOrderAsync(request));
+        await Assert.ThrowsAsync<Exception>(() => service.CreateOrderAsync(request, "key-3"));
     }
 
     [Fact]
@@ -137,10 +150,11 @@ public class OrderServiceUnitTests
         var mockRepo = new Mock<IOrderRepository>();
         mockRepo.Setup(r => r.GetAllOrdersAsync()).ReturnsAsync(Enumerable.Empty<Order>());
 
+        var mockIdempotency = new Mock<IIdempotencyRepository>();
         var mockPublish = new Mock<IPublishEndpoint>();
         var mockLogger = new Mock<ILogger<ServiceType>>();
 
-        var service = new ServiceType(mockRepo.Object, mockPublish.Object, mockLogger.Object);
+        var service = new ServiceType(mockRepo.Object, mockIdempotency.Object, mockPublish.Object, mockLogger.Object);
 
         // Act
         var result = await service.GetAllOrdersAsync();
@@ -162,14 +176,48 @@ public class OrderServiceUnitTests
         var mockRepo = new Mock<IOrderRepository>();
         mockRepo.Setup(r => r.CreateOrderAsync(It.IsAny<Order>())).ReturnsAsync(createdOrder);
 
+        var mockIdempotency = new Mock<IIdempotencyRepository>();
+        mockIdempotency.Setup(r => r.GetIdempotencyKeyAsync(It.IsAny<string>())).ReturnsAsync((IdempotencyKey?)null);
+
         var mockPublish = new Mock<IPublishEndpoint>();
         mockPublish.Setup(p => p.Publish(It.IsAny<OrderCreatedEvent>(), default)).ThrowsAsync(new Exception("Publish failed"));
 
         var mockLogger = new Mock<ILogger<ServiceType>>();
 
-        var service = new ServiceType(mockRepo.Object, mockPublish.Object, mockLogger.Object);
+        var service = new ServiceType(mockRepo.Object, mockIdempotency.Object, mockPublish.Object, mockLogger.Object);
 
         // Act & Assert
-        await Assert.ThrowsAsync<Exception>(() => service.CreateOrderAsync(request));
+        await Assert.ThrowsAsync<Exception>(() => service.CreateOrderAsync(request, "key-4"));
+    }
+
+    [Fact]
+    public async Task CreateOrder_ReturnsCachedOrderId_WhenIdempotencyKeyExists()
+    {
+        // Arrange
+        var request = new OrderRequest { CustomerEmail = "test@test.com", Amount = 100 };
+        var existingKey = new IdempotencyKey
+        {
+            Key = "duplicate-key",
+            Response = "999",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var mockRepo = new Mock<IOrderRepository>();
+        var mockIdempotency = new Mock<IIdempotencyRepository>();
+        mockIdempotency.Setup(r => r.GetIdempotencyKeyAsync("duplicate-key")).ReturnsAsync(existingKey);
+
+        var mockPublish = new Mock<IPublishEndpoint>();
+        var mockLogger = new Mock<ILogger<ServiceType>>();
+
+        var service = new ServiceType(mockRepo.Object, mockIdempotency.Object, mockPublish.Object, mockLogger.Object);
+
+        // Act
+        var result = await service.CreateOrderAsync(request, "duplicate-key");
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(999, result.Value);
+        mockRepo.Verify(r => r.CreateOrderAsync(It.IsAny<Order>()), Times.Never);
+        mockPublish.Verify(p => p.Publish(It.IsAny<OrderCreatedEvent>(), default), Times.Never);
     }
 }

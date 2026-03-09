@@ -30,10 +30,11 @@ public class OrdersController(IOrderService orderService, ILogger<OrdersControll
     [ProducesResponseType(typeof(OrderResponse), 201)]
     [ProducesResponseType(400)]
     [ProducesResponseType(500)]
-    public async Task<IActionResult> CreateOrders(OrderRequest request) 
+    public async Task<IActionResult> CreateOrders([FromHeader(Name = "Idempotency-Key")] string idempotencyKey,
+    [FromBody] OrderRequest request)
     {
         logger.LogInformation("Creating order :{Order}", JsonSerializer.Serialize(request));
-        var result = await orderService.CreateOrderAsync(request);
+        var result = await orderService.CreateOrderAsync(request, idempotencyKey);
 
         if (!result.IsSuccess)
         {
