@@ -8,7 +8,18 @@ on:
   pull_request:
     branches:
       - "**"
-
+  workflow_dispatch:
+    inputs:
+      dotnet-version:
+        description: ".NET SDK version"
+        required: true
+        default: "9.0.x"
+        type: choice
+        options:
+          - "8.0.x"
+          - "9.0.x"
+          - "10.0.x"
+    
 permissions:
   contents: read
 
