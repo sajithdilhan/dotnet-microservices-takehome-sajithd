@@ -31,6 +31,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: condition-1
+        if: runner.os != 'Windows'
+        run: echo "The operation system of runner is $env:RUNNER_OS"
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
